@@ -108,6 +108,14 @@ playCard = (playerIndex, state) => {
     return newState;
 }
 
+playStar = (state) => {
+    const newState = {...state};
+    newState.stars--;
+    newState.hands.forEach(arr => {
+        arr.shift();
+    });
+}
+
 lostLife = (card, state) => {
     const newState = {...state};
     newState.lives--;
