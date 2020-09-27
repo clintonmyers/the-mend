@@ -1,0 +1,46 @@
+html {
+    background-color: black;
+    color: whitesmoke;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 500;
+}
+
+div.header {
+  display: flex;
+}
+
+div.header h2 {
+  font-size: 60px;
+  font-weight: 300;
+}
+
+div.links, a {
+    margin: 1em 1.5em;
+    padding: 1em 1.5em;
+}
+
+h1 {
+    font-size: 72px;
+    font-weight: 300;
+}
+
+a {
+  background-color: red;
+  box-shadow: 0 5px 0 darkred;
+  color: whitesmoke;
+  position: relative;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+a:hover {
+  background-color: #ce0606;
+}
+
+a:active {
+  box-shadow: none;
+  top: 5px;
+}

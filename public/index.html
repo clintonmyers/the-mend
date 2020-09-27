@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Mend</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Welcome to The Mend</h1>
+  <div class="links">
+    <a href="#" onclick="join()">Join Game</a>
+    <a href="game.html">Spectate</a>    
+  </div>
+  <div id="test">1</div>
+  <script>
+    testElement = document.getElementById('test');
+    urlArr = document.URL.split('/');
+    fileName = urlArr[urlArr.length - 1];
+    testElement.innerText = fileName;
+
+    connection = new WebSocket('ws://localhost:8080');
+    console.log(connection);
+    connection.onopen = () => {
+      console.log(connection);
+      // connection.send(JSON.stringify({ message: 'playCard' }));
+    }
+
+    connection.onerror = (error) => {
+      console.log(`WebSocket error: ${error}`)
+    }
+
+    connection.onmessage = (e) => {
+      console.log(e.data)
+    }
+
+    function join() {
+      fetch('http://localhost:3000/join-game').then(response => {
+        console.log(response);
+        if (response.redirected) {
+          window.location = response.url;
+        }
+      })
+    }
+  </script>
+</body>
+</html>

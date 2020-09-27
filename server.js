@@ -1,37 +1,82 @@
 // server.js
- 
+
+// WEBSOCKETS
 const WebSocket = require('ws')
  
 const wss = new WebSocket.Server({ port: 8080 })
- 
+
+let clients = [];
+
 wss.on('connection', ws => {
+  clients.push(ws);
   ws.on('message', message => {
-    console.log(`Received message => ${message}`)
-  })
-  ws.send('Hello! Message From Server!!')
+    sendState = () => {
+      console.log('sending state');
+      console.log(state);
+      clients.forEach(client => {
+        client.send(JSON.stringify(state));
+      });
+    }
+    
+    let json = JSON.parse(message);
+    if (json.action) {
+      if (json.action === 'update') {
+        sendState();
+      } else if (json.action === 'playCard') {
+        state = playCard(json.playerIndex, state);
+        sendState();
+      } else if (json.action === 'playStar') {
+        state = playStar(state);
+        sendState();
+      } else if (json.action === 'startGame') {
+        state.deck = shuffle();
+        state = dealCards(state);
+        sendState();
+      }
+    }
+  });
 })
 
-let state = {
+// EXPRESS
+const express = require('express');
+const app = express();
+const router = express.Router();
+const port = 3000;
+
+// SERVE STATIC ASSETS
+app.use('/', router);
+app.use(express.static('public'))
+var server = app.listen(port, function () {
+  console.log('node.js static server listening on port: ' + port)
+});
+
+// API
+app.get('/join-game', (req, res) => {
+  if (state.hands.length < 4) {
+    state = addPlayer(state);
+    console.log('New Player');
+    console.log(state);
+    res.status(301).redirect(`http://localhost:3000/game.html?player=${state.hands.length - 1}`);    
+  } else {
+    console.log('New Spectator');
+    res.redirect(`http://localhost:3000/game.html`);
+  }
+});
+
+// GAME
+const initialState = {
     round: 1,
     lives: 0,
     stars: 1,
     deck: [],
-    hands: []
+    hands: [],
+    card: null
 }
 
-const express = require('express')
-const app = express()
-const port = 3000
-
-// app.get('/', (req, res) => {
-//   res.send('Hello World!')
-// })
-
-// app.listen(port, () => {
-//   console.log(`Example app listening at http://localhost:${port}`)
-// })
+let state = initialState;
 
 shuffle = () => {
+    console.log('Shuffling...');
     const arr = [];
     for (let i=1; i<=100; i++) {
         arr.push(i);
@@ -68,41 +113,35 @@ sortArrOfArrs = (arrays) => {
     return newArrays;
 }
 
-setPlayers = (playerQty, state) => {
-    if (playerQty >= 2 && playerQty <= 4) {
-        const newState = {...state};
-        for (let i=0; i<playerQty; i++) {
-            newState.hands.push([]);
-            newState.lives++;
-            console.log('here');
-        }
-        console.log(newState);
-        return newState
-    } else {
-        // Error: Incorrect player quantity
-        return null
-    }
+addPlayer = (state) => {
+    const newState = {...state};
+    newState.hands.push([]);
+    newState.lives++;
+    return newState;
 }
 
 playCard = (playerIndex, state) => {
     let newState = {...state};
-    const card = newState.hands[playerIndex][0];
+    newState.card = newState.hands[playerIndex][0];
     let loseLife = false;
     newState.hands[playerIndex].shift();
     for (let i=0; i<newState.hands.length; i++) {
-        if (card > newState.hands[i][0]) {
+        if (newState.card > newState.hands[i][0]) {
             loseLife = true;
         }
     }
     if (loseLife) {
-        newState = lostLife(card, newState);
+        newState = lostLife(newState);
     }
     if (!newState.hands.flat().length) {
         newState.round++;
         if (newState.round === 13) {
             endGame(true);
         } else {
+            newState.card = null;
             newState = addRewards(newState);
+            newState.deck = shuffle();
+            newState = dealCards(newState);
         }
     }
     return newState;
@@ -116,13 +155,13 @@ playStar = (state) => {
     });
 }
 
-lostLife = (card, state) => {
+lostLife = (state) => {
     const newState = {...state};
     newState.lives--;
     console.log('That was not the lowest card');
     if (newState.lives > 0) {
         for (let i=0; i<newState.hands.length; i++) {
-            newState.hands[i] = newState.hands[i].filter(item => item > card);
+            newState.hands[i] = newState.hands[i].filter(item => item > newState.card);
         }
     } else {
         endGame(false);
@@ -153,30 +192,6 @@ addRewards = (state) => {
     return newState;
 }
 
-state.deck = shuffle();
-
-console.log(state);
-
-const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-  
-readline.question('How many players? ', num => {
-console.log(`There are ${num} players.`);
-state = setPlayers(num, state);
-console.log(state);
-state = dealCards(state);
-state = playCard(1, state);
-console.log(state);
-readline.close();
-});
-
-app.get('/', function (req, res) {
-    // do something here
-  })
-
-
 // Set initial state // DONE
 // Input players // DONE
 // Set lives // DONE
@@ -185,7 +200,7 @@ app.get('/', function (req, res) {
         // Generate hands // DONE
         // While cards played < players
             // Play cards (decrement lives) // DONE
-            // Or play star
+            // Or play star // DONE
         // Increment round // DONE
         // Administer rewards // DONE
     // Else You lose
