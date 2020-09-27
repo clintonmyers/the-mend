@@ -54,10 +54,15 @@ class Game extends React.Component {
       return (
         <div className="container">
           <div className="header">
-            {
-              
+          {
+              Object.keys(this.state).length ?
+                this.state.hands.flat().length === 0 && this.state.round === 1 ?
+                  <h2>Welcome {playerIndex ? `Player ${playerIndex}` : 'Spectator'}</h2>
+                  :
+                  <h1>Round {this.state.round}</h1>
+                :
+                ''
             }
-            <h2>Welcome {playerIndex ? `Player ${playerIndex}` : 'Spectator'}</h2>
           </div>
           <div className="main">
             {
@@ -82,29 +87,18 @@ class Game extends React.Component {
                       :
                       ''
                   }
-                  <button onClick={this.playStar}>Play Star</button>
+                  {
+                    this.state.stars ?
+                      <button onClick={this.playStar}>Play Star ({this.state.stars} remaining)</button>
+                      :
+                      ''
+                  }
                 </div>
                 :
                 ''
               :
               ''
           }
-          {/* {
-            playerIndex && this.state.hands.flat().length > 0 ?
-              <div className="hand">
-                <p>{ this.state.hands[playerIndex].toString }</p>
-                <br/>
-                {
-                  this.state.hands[playerIndex].length ?
-                    <button onClick={playCard}>Play Card</button>
-                    :
-                    ''
-                }
-                <button onClick={playStar}>Play Star</button>
-              </div>
-            :
-            ''
-          } */}
         </div>
       );    
     }

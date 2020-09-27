@@ -29,8 +29,7 @@ wss.on('connection', ws => {
         state = playStar(state);
         sendState();
       } else if (json.action === 'startGame') {
-        state.deck = shuffle();
-        state = dealCards(state);
+        state = startRound(state);
         sendState();
       }
     }
@@ -108,9 +107,18 @@ dealCards = (state) => {
 sortArrOfArrs = (arrays) => {
     const newArrays = arrays;
     for (let i=0; i<newArrays.length; i++) {
-        newArrays[i].sort();
+        newArrays[i] = newArrays[i].sort((a,b) => a-b);
     }
     return newArrays;
+}
+
+startRound = (state) => {
+    newState = {...state};
+    newState.card = null;
+    newState = addRewards(newState);
+    newState.deck = shuffle();
+    newState = dealCards(newState);
+    return newState;
 }
 
 addPlayer = (state) => {
@@ -138,10 +146,7 @@ playCard = (playerIndex, state) => {
         if (newState.round === 13) {
             endGame(true);
         } else {
-            newState.card = null;
-            newState = addRewards(newState);
-            newState.deck = shuffle();
-            newState = dealCards(newState);
+            newState = startRound(newState);
         }
     }
     return newState;
@@ -195,13 +200,19 @@ addRewards = (state) => {
 // Set initial state // DONE
 // Input players // DONE
 // Set lives // DONE
-// While rounds < 13
-    // If lives > 0
+// While rounds < 13 // DONE
+    // If lives > 0 // DONE
         // Generate hands // DONE
-        // While cards played < players
+        // While cards played < players // DONE
             // Play cards (decrement lives) // DONE
             // Or play star // DONE
         // Increment round // DONE
         // Administer rewards // DONE
-    // Else You lose
-// You win
+    // Else You lose // DONE
+// You win // DONE
+
+// TODO
+// RESET BUTTON/FUNCTIONALITY THAT KICKS ALL BACK TO FRONT PAGE
+// END GAME HANDLING ON FRONT/BACK END
+// ALERTS SYSTEM/PROPERTY
+// STATUS PROPERTY

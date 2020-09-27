@@ -10,6 +10,7 @@ html {
 
 div.header {
   display: flex;
+  justify-content: center;
 }
 
 div.header h2 {
