@@ -7,6 +7,8 @@ class Game extends React.Component {
     constructor(props) {
       super(props);
       this.state = {};
+
+      this.reset = this.reset.bind(this);
       this.startGame = this.startGame.bind(this);
       this.playCard = this.playCard.bind(this);
       this.playStar = this.playStar.bind(this);
@@ -28,7 +30,20 @@ class Game extends React.Component {
       }
       
       this.connection.onmessage = (e) => {
-        this.setState(JSON.parse(e.data));
+        const newState = JSON.parse(e.data);
+        if (newState.status === 'win') {
+          window.alert('Congrats! You won the game!');
+          window.location = 'http://localhost:3000';
+        }
+        if (newState.status === 'loss') {
+          window.alert('You lost the game.');
+          window.location = 'http://localhost:3000';
+        }
+        if (newState.status === 'new' && this.state.status === 'playing') {
+          window.alert('The game has been reset.');
+          window.location = 'http://localhost:3000';
+        }
+        this.setState(newState);
         console.log('new state');
         console.log(this.state);
       }
@@ -36,6 +51,10 @@ class Game extends React.Component {
 
     componentWillUnmount() {
       this.connection.close();
+    }
+
+    reset() {
+      this.connection.send(JSON.stringify({ action: 'reset' }));
     }
 
     startGame() {
@@ -53,6 +72,7 @@ class Game extends React.Component {
     render() {
       return (
         <div className="container">
+          <button id="reset" onClick={this.reset}>Reset Game</button>
           <div className="header">
           {
               Object.keys(this.state).length ?
@@ -67,10 +87,13 @@ class Game extends React.Component {
           <div className="main">
             {
               Object.keys(this.state).length ?
-                this.state.hands.flat().length === 0 && this.state.round === 1 ?
-                  <button onClick={this.startGame}>Start Game</button>
+                this.state.hands.length > 1 ?
+                  this.state.hands.flat().length === 0 && this.state.round === 1 ?
+                    <button onClick={this.startGame}>Start Game ({this.state.hands.length} players)</button>
+                    :
+                    <h1>{this.state.card || 'Play a card'}</h1>
                   :
-                  <h1>{this.state.card || 'Play a card'}</h1>
+                  ''
                 :
                 ''
             }

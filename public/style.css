@@ -8,6 +8,12 @@ html {
     font-weight: 500;
 }
 
+#reset {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
 div.header {
   display: flex;
   justify-content: center;

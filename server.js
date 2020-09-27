@@ -29,7 +29,11 @@ wss.on('connection', ws => {
         state = playStar(state);
         sendState();
       } else if (json.action === 'startGame') {
-        state = startRound(state);
+        state = startGame(state);
+        sendState();
+      } else if (json.action === 'reset') {
+        state = {...initialState};
+        state.hands = []; // Why is this necessary?
         sendState();
       }
     }
@@ -64,15 +68,17 @@ app.get('/join-game', (req, res) => {
 
 // GAME
 const initialState = {
+    status: 'new',
     round: 1,
     lives: 0,
     stars: 1,
     deck: [],
     hands: [],
-    card: null
+    card: null,
+    alert: null
 }
 
-let state = initialState;
+let state = {...initialState};
 
 shuffle = () => {
     console.log('Shuffling...');
@@ -121,6 +127,13 @@ startRound = (state) => {
     return newState;
 }
 
+startGame = (state) => {
+    newState = {...state};
+    newState.status = 'playing';
+    newState = startRound(newState);
+    return newState;
+}
+
 addPlayer = (state) => {
     const newState = {...state};
     newState.hands.push([]);
@@ -144,7 +157,7 @@ playCard = (playerIndex, state) => {
     if (!newState.hands.flat().length) {
         newState.round++;
         if (newState.round === 13) {
-            endGame(true);
+            newState.status = 'win';
         } else {
             newState = startRound(newState);
         }
@@ -169,17 +182,9 @@ lostLife = (state) => {
             newState.hands[i] = newState.hands[i].filter(item => item > newState.card);
         }
     } else {
-        endGame(false);
+        newState.status = 'loss';
     }
     return newState;
-}
-
-endGame = (win) => {
-    if (win) {
-        console.log('YOU WIN');
-    } else if (!win) {
-        console.log('GAME OVER');
-    }
 }
 
 addRewards = (state) => {
@@ -212,7 +217,6 @@ addRewards = (state) => {
 // You win // DONE
 
 // TODO
-// RESET BUTTON/FUNCTIONALITY THAT KICKS ALL BACK TO FRONT PAGE
-// END GAME HANDLING ON FRONT/BACK END
-// ALERTS SYSTEM/PROPERTY
-// STATUS PROPERTY
+// COMPONENTIZE EVERYTHING
+// IMPROVE ALERTS/POPUPS
+// IMPROVE CARDS
